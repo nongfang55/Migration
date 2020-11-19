@@ -1,0 +1,10 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="Migration:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/Migration_jar</output-path>
+    <root id="archive" name="Migration.jar">
+      <element id="module-output" name="Migration" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../../Program Files (x86)/scala/lib/scala-library.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../../../Program Files (x86)/scala/lib/scala-reflect.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
