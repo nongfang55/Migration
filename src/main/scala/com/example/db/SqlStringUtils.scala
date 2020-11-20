@@ -7,6 +7,7 @@ object SqlStringUtils {
 
   // 会用到的表名
   val STR_TAB_MIGRATION = "migration"
+  val STR_TAB_PROVINCE_MIGRATION_PAGE_RANK = "provinceMigrationPageRank"
 
 
   // sql 查询会用到的 属性

@@ -1,7 +1,7 @@
 package com.example
 
 import com.example.config.ConfigParser
-import com.example.utils.StringKeyUtils
+import com.example.utils.{DateConvertHelper, StringKeyUtils}
 
 object test {
   def main(args:Array[String]) : Unit = {
@@ -14,5 +14,7 @@ object test {
     println(properties.getProperty(ConfigParser.STR_KEY_CONFIG_DATABASE_URL))
     println(properties.getProperty(ConfigParser.STR_KEY_CONFIG_DATABASE_USER_NAME))
     println(properties.getProperty(ConfigParser.STR_KEY_CONFIG_DATABASE_USER_PASSWORD))
+
+    println(DateConvertHelper.convertStandTime("20201010"))
   }
 }
