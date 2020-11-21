@@ -13,7 +13,7 @@ import org.apache.spark.rdd.{JdbcRDD, RDD}
 import org.apache.spark.sql.{DataFrame, Row, SQLContext, SaveMode, SparkSession}
 import com.example.utils.{DateConvertHelper, ProvinceUtils, StringKeyUtils}
 import org.apache.hadoop.tracing.TraceAdminPB.ConfigPair
-import org.apache.spark.graphx.{Edge, Graph}
+import org.apache.spark.graphx.{Edge, Graph, GraphOps}
 
 object GraphProcess {
 
@@ -47,12 +47,19 @@ object GraphProcess {
     // 读取数据库获得疫情信息
     val epidemicRawRDD = EpidemicDataLoader.loadEpidemicData(spark, sqlUrl, properties)
 
-    // 通过时间对RDD进行过滤
-    val date_t = "20200130"
-    val dateStand = DateConvertHelper.convertStandTime(date_t)
-    val isIn = true // 定义方向
-    println("now filter date", date_t)
-    GraphProcess.processGraphBySingle(spark, date_t, isIn, migrationRD, epidemicRawRDD, properties, sqlUrl)
+    val dateArray = DateConvertHelper.generateDateList(config.getProperty(ConfigParser.STR_KEY_CONFIG_PROCESS_START_DATE),
+      config.getProperty(ConfigParser.STR_KEY_CONFIG_PROCESS_END_DATE))
+
+    //按照日期的计算
+    dateArray.foreach(date_t => {
+      // 通过时间对RDD进行过滤
+      println("now filter date", date_t)
+      var isIn = true // 定义方向
+      GraphProcess.processGraphBySingle(spark, date_t, isIn, migrationRD, epidemicRawRDD, properties, sqlUrl)
+      isIn = false
+      GraphProcess.processGraphBySingle(spark, date_t, isIn, migrationRD, epidemicRawRDD, properties, sqlUrl)
+    })
+
     println("end")
   }
 
@@ -92,7 +99,7 @@ object GraphProcess {
       DateConvertHelper.convertStandTimeToRaw(datetime))
 
     // 建立顶点RDD
-    val vertexRDD = countryMigrationRD.map(f=>(f.mproId.toLong,f.province_name))
+    val vertexRDD = countryMigrationRD.map(f=>(f.mproId.toLong,f.province_name)).cache()
     val tupleCountryRDD = countryMigrationRD.map(f=>(f.mproId, f.value))
 
     // 计算边的权值
@@ -101,10 +108,9 @@ object GraphProcess {
     println("filter province rdd", provinceMigrationRD)
 
     val tempJoinRDD = provinceMigrationRD.join(tupleCountryRDD)
-    //    tempJoinRDD.foreach(println)
     // join 结果实例  (120000,((540000,2.3),0.93))
     val edgeRDD = tempJoinRDD.map(f=>(f._2._1._1, f._1, f._2._2.toDouble * f._2._1._2.toDouble))
-      .map(f=>Edge(f._1.toLong, f._2.toLong, f._3))
+      .map(f=>Edge(f._1.toLong, f._2.toLong, f._3)).cache()
     edgeRDD.foreach(println)
 
     // 建图
@@ -112,7 +118,7 @@ object GraphProcess {
     println("build graph success")
 
     // 计算pagerank
-    val ranks = graph.pageRank(0.1).vertices
+    val ranks = graph.ops.staticPageRank(5, 0.15).vertices
     //    ranks.foreach(println)
 
     //pagerank 计算结果保存数据库
@@ -129,6 +135,36 @@ object GraphProcess {
       TableSchemaHelper.SCHEMA_PROVINCE_RISK_LEVEL)
     provinceRiskLevelDF.show()
     provinceRiskLevelDF.write.mode(SaveMode.Append).jdbc(sqlUrl, SqlStringUtils.STR_TAB_PROVINCE_RISK_LEVEL, properties)
+
+    // 计算各个省份的personal rank
+    var provinceMigrationPersonalRankRDD: RDD[Row]
+    = spark.sparkContext.emptyRDD[Row]
+    val locationIds = ProvinceUtils.IdtoProvinceMap.keys
+    for(key<-locationIds) {
+      val tempRDD = GraphProcess.processSingleProvincePersonalRank(spark,dateStand,isIn,key,
+        vertexRDD, edgeRDD, properties, sqlUrl)
+      provinceMigrationPersonalRankRDD = provinceMigrationPersonalRankRDD.union(tempRDD)
+    }
+    println(provinceMigrationPersonalRankRDD.count())
+    //   统一建立DF并保存到数据库
+    val provinceMigrationPersonalRankDF = spark.createDataFrame(provinceMigrationPersonalRankRDD,
+          TableSchemaHelper.SCHEMA_PROVINCE_MIGRATION_PERSONAL_RANK)
+    provinceMigrationPersonalRankDF.show()
+    provinceMigrationPersonalRankDF.write.mode(SaveMode.Append).jdbc(sqlUrl,
+      SqlStringUtils.STR_TAB_PROVINCE_MIGRATION_PERSONAL_RANK, properties)
+  }
+
+  def processSingleProvincePersonalRank(spark:SparkSession, datetime:String, isIn:Boolean, locationId:String,
+                                        vertexRDD:RDD[(Long, String)], edgeRDD:RDD[Edge[Double]], properties:Properties,
+                                        sqlUrl:String): RDD[Row] = {
+    val personalRankRDD = Graph(vertexRDD, edgeRDD).ops.
+      staticPersonalizedPageRank(locationId.toLong, 5, 0.15).vertices
+    println(personalRankRDD)
+    val weightTotal = personalRankRDD.map(f=>f._2).fold(0)(_ + _)
+    val weightedPersonalRankRDD = personalRankRDD.map(f=>Row(datetime,locationId.toString,
+      f._1.toString, isIn, f._2/weightTotal))
+    println(weightedPersonalRankRDD)
+    return weightedPersonalRankRDD
   }
 
 }

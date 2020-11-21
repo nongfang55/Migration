@@ -9,4 +9,8 @@ object StringKeyUtils {
   // 配置文件名称
   val STR_KEY_PROPERTIES_FILE_NAME = "application.properties"
 
+  //日期字符串格式
+  val STR_KEY_DATE_FORMAT_WITH_NO_LINE = "yyyyMMdd"
+  val STR_KEY_DATE_FORMAT_WITH_LINE = "yyyy-MM-dd"
+
 }
