@@ -8,6 +8,11 @@ object SqlStringUtils {
   // 会用到的表名
   val STR_TAB_MIGRATION = "migration"
   val STR_TAB_PROVINCE_MIGRATION_PAGE_RANK = "provinceMigrationPageRank"
+  val STR_TAB_PROVINCE_MIGRATION_TREND = "provinceMigrationTrend"
+  val STR_TAB_PROVINCE_MIGRATION_DETAIL = "provinceMigrationDetail"
+  val STR_TAB_PROVINCE_TREND = "provincetrend"
+  val STR_TAB_PROVINCE_RISK_LEVEL = "provinceRiskLevel"
+  val STR_TAB_PROVINCE_MIGRATION_PERSONAL_RANK = "provinceMigrationPersonalRank"
 
 
   // sql 查询会用到的 属性

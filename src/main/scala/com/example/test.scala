@@ -16,5 +16,6 @@ object test {
     println(properties.getProperty(ConfigParser.STR_KEY_CONFIG_DATABASE_USER_PASSWORD))
 
     println(DateConvertHelper.convertStandTime("20201010"))
+    println(DateConvertHelper.convertStandTimeToRaw("2020-10-10"))
   }
 }

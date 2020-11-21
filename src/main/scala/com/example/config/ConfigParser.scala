@@ -11,6 +11,7 @@ object ConfigParser {
   val STR_KEY_CONFIG_DATABASE_USER_PASSWORD = "database_user_password"
   val STR_KEY_CONFIG_DATABASE_URL = "database_url"
   val STR_KEY_CONFIG_DATABASE_DRIVER = "database_driver"
+  val STR_KEY_CONFIG_EPIDEMIC_OFFSET = "epidemic_offset"
 
   def loadProperties(filePath: String): Properties = {
     val properties = new Properties()

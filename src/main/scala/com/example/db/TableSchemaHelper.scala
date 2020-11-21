@@ -13,4 +13,43 @@ object TableSchemaHelper {
       StructField("value", DoubleType, nullable = true)
     )
   }
+
+  val SCHEMA_PROVINCE_MIGRATION_TREND: StructType = StructType{
+    List(
+      StructField("datetime", StringType, nullable = false),
+      StructField("locationId", StringType, nullable = false),
+      StructField("direction", BooleanType, nullable = false),
+      StructField("ratio", DoubleType, nullable = true)
+    )
+  }
+
+  val SCHEMA_PROVINCE_MIGRATION_DETAIL: StructType = StructType{
+    List(
+      StructField("datetime", StringType, nullable = false),
+      StructField("sourceLocationId", StringType, nullable = false),
+      StructField("destinationLocationId", StringType, nullable = false),
+      StructField("direction", BooleanType, nullable = false),
+      StructField("ratio", DoubleType, nullable = true)
+    )
+  }
+
+  val SCHEMA_PROVINCE_RISK_LEVEL: StructType = StructType{
+    List(
+      StructField("datetime", StringType, nullable = false),
+      StructField("locationId", StringType, nullable = false),
+      StructField("direction", BooleanType, nullable = false),
+      StructField("value", DoubleType, nullable = true)
+    )
+  }
+
+  val SCHEMA_PROVINCE_MIGRATION_PERSONAL_RANK: StructType = StructType{
+    List(
+      StructField("datetime", StringType, nullable = false),
+      StructField("sourceLocationId", StringType, nullable = false),
+      StructField("destinationLocationId", StringType, nullable = false),
+      StructField("direction", BooleanType, nullable = false),
+      StructField("value", DoubleType, nullable = true)
+    )
+  }
+
 }
